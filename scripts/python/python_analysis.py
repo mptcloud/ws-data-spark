@@ -28,6 +28,25 @@ def _haversine_dist(lat1, lon1, lat2, lon2):
     return c * R
 
 
+def _calculate_poi_stats_df(poi_df):
+    """
+
+    :param poi_df:
+    :return:
+    """
+    group_cols = ['POIID']
+
+    poi_stats_df = poi_df \
+        .loc[:, ['POIID', 'Distance']] \
+        .groupby(group_cols) \
+        .agg(['mean', 'std', 'max', 'count'])
+
+    poi_stats_df.columns = ['mean_distance', 'stddev_distance', 'radius', 'req_count']
+    poi_stats_df['density'] = poi_stats_df['req_count'] / (pi * pow(poi_stats_df['radius'], 2))
+
+    return poi_stats_df
+
+
 class DataPreprocessor:
     """
 
@@ -194,7 +213,10 @@ if __name__ == '__main__':
     output_df = fast_poi_assignment.transform(preprocessed_data.data_df)
     output_df.to_csv(OUTPUT_DIR / 'output_via_mapreduce.csv', index=False)
     print('Time elapsed for the Pandas process using parallel map and reduce'
-          ' with {} parallel processes: {} seconds'.format(N_JOBS, time.process_time() - start))
+          ' with {} parallel processes: {} seconds'.format(N_JOBS, time.process_time() - start)
+
+    poi_stats_df = _calculate_poi_stats_df(output_df)
+    output_df.to_csv(OUTPUT_DIR / 'poi_stats.csv', index=False)
 
 
 
