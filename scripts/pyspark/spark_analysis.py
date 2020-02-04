@@ -12,10 +12,12 @@ from math import radians, cos, sin, asin, sqrt, pi
 
 def _start_spark(app_name='my_spark_app', master='local[*]'):
     """
+    Start a Spark session on the worker node and register the Spark application with the cluster. The app_name argument
+    will apply only when this is called from a script sent to spark-submit.
 
-    :param app_name:
-    :param master:
-    :return:
+    :param app_name: A string representing the name of the Pyspark app
+    :param master: Cluster connection details (defaults to local[*])
+    :return: A Spark session
     """
     flag_repl = not (hasattr(__main__, '__file__'))
 
@@ -39,10 +41,11 @@ def _start_spark(app_name='my_spark_app', master='local[*]'):
 
 def _read_data(data_path, *args):
     """
+    Read the data from a specified input path
 
-    :param data_path:
-    :param args:
-    :return:
+    :param data_path: A path to the csv file being loaded into a Spark dataframe
+    :param args: Column names for the dataframe created from the csv file
+    :return: A Spark dataframe
     """
     file_location = data_path
     file_type = 'csv'
@@ -63,10 +66,15 @@ def _read_data(data_path, *args):
 
 def _preprocess_data(df, df_name):
     """
+    Remove duplicate entries from a specific dataframe
 
-    :param df:
-    :param df_name:
-    :return:
+    This function is more of a factory method, in that the name parameter changes the way in which the data is
+    preprocessed. In the case of request data, all duplicate entries (including the original entry) are removed, while
+    only the duplicate entries are removed for the POI data.
+
+    :param df: A Spark dataframe that needs to be preprocessed
+    :param df_name: A string to specify the kind of dat
+    :return: A Spark dataframe, post-processing.
     """
     if df_name == 'POI':
         df_filtered = df.dropDuplicates(['Latitude', 'Longitude'])
@@ -92,12 +100,16 @@ def _preprocess_data(df, df_name):
 @udf("double")
 def _haversine_dist(lat1, lon1, lat2, lon2):
     """
+    Calculate the distance between two points (say, A and B) from their geographical coordinates using the Haversine
+    formula
 
-    :param lat1:
-    :param lon1:
-    :param lat2:
-    :param lon2:
-    :return:
+    This method is a Spark UDF, as indicated by the decorator, that returns a double data type
+
+    :param lat1: Latitude of point A
+    :param lon1: Longitude of point A
+    :param lat2: Latitude of point B
+    :param lon2: Longitude of point B
+    :return: A double data type representing the distance in kilometres
     """
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
@@ -111,10 +123,11 @@ def _haversine_dist(lat1, lon1, lat2, lon2):
 
 def _associate_poiid_to_request(poi_df, data_df):
     """
+    Implement the assignment of a request ID to its nearest POI
 
-    :param poi_df:
-    :param data_df:
-    :return:
+    :param poi_df: A Spark dataframe containing POI information
+    :param data_df: A Spark dataframe containing request ID information
+    :return: A Spark datframe assigning a POI to a request ID, together with the distance between the two
     """
     poi_data_join_df = data_df.crossJoin(
         poi_df \
@@ -141,9 +154,12 @@ def _associate_poiid_to_request(poi_df, data_df):
 
 def _calculate_poi_stats(df):
     """
+    Calculate all the relevant statistics for a given position of interest (POI)
 
-    :param df:
-    :return:
+    :param poi_df: A Spark dataframe containing information mapping a request ID to a POI together with the distance
+    between the ID and the POI
+    :return: A Spark dataframe containing information about the mean and standard deviations of the distances of all
+    various requests, the maximum distance (radius), request counts, and density associated to a POI
     """
     poi_stats_df = df \
         .groupBy('POIID') \
@@ -167,8 +183,9 @@ def _calculate_poi_stats(df):
 
 def main():
     """
+    Implement all the operations associated to the project
 
-    :return:
+    :return: None
     """
     PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
     DATA_PATH = PROJECT_DIR / 'data' / 'DataSample.csv'
@@ -187,6 +204,9 @@ def main():
     matched_data_poi_df = _associate_poiid_to_request(poi_df_filtered, data_df_filtered)
 
     poi_stats_df = _calculate_poi_stats(matched_data_poi_df)
+
+    # Coalesce is used here to output a single .csv file, rather than a folder containing partitioned files.
+    # If the file is too large to be loaded into memory, then the coalesce can be commented out.
     poi_stats_df \
         .coalesce(1) \
         .write \
