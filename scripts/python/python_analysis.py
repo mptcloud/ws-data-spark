@@ -213,10 +213,7 @@ if __name__ == '__main__':
     output_df = fast_poi_assignment.transform(preprocessed_data.data_df)
     output_df.to_csv(OUTPUT_DIR / 'output_via_mapreduce.csv', index=False)
     print('Time elapsed for the Pandas process using parallel map and reduce'
-          ' with {} parallel processes: {} seconds'.format(N_JOBS, time.process_time() - start)
+          ' with {} parallel processes: {} seconds'.format(N_JOBS, time.process_time() - start))
 
     poi_stats_df = _calculate_poi_stats_df(output_df)
-    output_df.to_csv(OUTPUT_DIR / 'poi_stats.csv', index=False)
-
-
-
+    poi_stats_df.to_csv(OUTPUT_DIR / 'poi_stats.csv')
