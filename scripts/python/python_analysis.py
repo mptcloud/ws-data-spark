@@ -12,12 +12,14 @@ from toolz.sandbox.parallel import fold
 
 def _haversine_dist(lat1, lon1, lat2, lon2):
     """
+    Calculate the distance between two points (say, A and B) from their geographical coordinates using the Haversine
+    formula
 
-    :param lat1:
-    :param lon1:
-    :param lat2:
-    :param lon2:
-    :return:
+    :param lat1: Latitude of point A
+    :param lon1: Longitude of point A
+    :param lat2: Latitude of point B
+    :param lon2: Longitude of point B
+    :return: A floating point number representing the distance in kilometres
     """
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
@@ -30,9 +32,12 @@ def _haversine_dist(lat1, lon1, lat2, lon2):
 
 def _calculate_poi_stats_df(poi_df):
     """
+    Calculate all the relevant statistics for a given position of interest (POI)
 
-    :param poi_df:
-    :return:
+    :param poi_df: A Pandas dataframe containing information mapping a request ID to a POI together with the distance
+    between the ID and the POI
+    :return: A Pandas dataframe containing information about the mean and standard deviations of the distances of all
+    various requests, the maximum distance (radius), request counts, and density associated to a POI
     """
     group_cols = ['POIID']
 
@@ -49,11 +54,12 @@ def _calculate_poi_stats_df(poi_df):
 
 class DataPreprocessor:
     """
-
+    Encapsulate the reading and pre-processing of all associated data for the project
     """
     PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
     DATA_PATH = PROJECT_DIR / 'data' / 'DataSample.csv'
     POI_PATH = PROJECT_DIR / 'data' / 'POIList.csv'
+    """ Paths for storing the location of all the relevant data"""
 
     def __init__(self):
         self.data_df = pd.read_csv(
@@ -84,7 +90,9 @@ class DataPreprocessor:
 
 class POIAssigner(BaseEstimator, TransformerMixin):
     """
+    Encapsulate operations responsible for mapping a request ID to its nearest POI
 
+    Extend BaseEstimator and TransformerMixin from scikit-learn, for use in scitkit-learn pipelines, if necessary
     """
     def __init__(self, poi_df):
         self.poi_df = poi_df
@@ -111,9 +119,11 @@ class POIAssigner(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         """
+        Apply the transformation process (done here iteratively) to a given Pandas dataframe
 
-        :param X:
-        :return:
+        :param X: A Pandas dataframe containing information about requests
+        :return: A Pandas dataframe containing request ID to its nearest POI, together with distance between the two
+        points
         """
         x_copy = X.copy()
 
@@ -128,7 +138,10 @@ class POIAssigner(BaseEstimator, TransformerMixin):
 
 class POIAssignerMapReduce(POIAssigner):
     """
+    Encapsulate operations responsible for mapping a request ID to its nearest POI while making use of parallel map
+    and reduce operations in order to speed up the process considerably
 
+    Extend BaseEstimator and TransformerMixin from scikit-learn, for use in scitkit-learn pipelines, if necessary
     """
     def __init__(self, poi_df, n_jobs=1):
         self.n_jobs = n_jobs
@@ -165,18 +178,30 @@ class POIAssignerMapReduce(POIAssigner):
     @staticmethod
     def __concat_df(df1, df2):
         """
+        Implement an associative operation that executes reductions in parallel
 
-        :param df1:
-        :param df2:
-        :return:
+        The associative operation in this is case is concatenation. The output dataframes of the parallel map operation
+        are concatenated row-wise to yield the resultant final dataframe. More information regarding this parallel map
+        and reduction process can be found in the documentation for the fold function within the Pytoolz Python package:
+        https://toolz.readthedocs.io/en/latest/api.html#toolz.sandbox.parallel.fold
+
+        :param df1: A Pandas dataframe that is the output of a parallel map operation
+        :param df2: A Pandas dataframe that is the output of a parallel map operation
+        :return: A Pnadas dataframe formed by the row-wise concatenation of the input dataframes
         """
         return pd.concat((df1, df2), axis="rows")
 
     def transform(self, X):
         """
+        Apply the transformation process (done via map and reduce) to a given Pandas dataframe
 
-        :param X:
-        :return:
+        The inital map operation is achieved by splitting the larger dataframe containing information about the requests
+        into smaller batches. Each batch is then evaluated lazily within a parallel reduce operation, executed by the
+        use of the fold function within the sandbox.parallel module of the Pytoolz package
+
+        :param X: A Pandas dataframe containing information about requests
+        :return: A Pandas dataframe containing request ID to its nearest POI, together with distance between the two
+        points
         """
         x_copy = X.copy()
 
