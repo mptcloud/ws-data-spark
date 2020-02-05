@@ -17,14 +17,13 @@ The command will above the requisite environment with the name: ml_eq.
 
 ##### Relevant sub-folders
 
-1. notebooks -- Initial development work done on Jupyter and Databricks Spark notebooks
-2. output -- Output files returned by the relevant scripts within the scripts folder. If the scripts are run, all the
+1. `notebooks` -- Initial development work done on Jupyter and Databricks Spark notebooks
+2. `output` -- Output files returned by the relevant scripts within the scripts folder. If the scripts are run, all the
 output files will be saved in this folder 
-3. plots -- Relevant figures and plots used to tackle the modeling part of the assignment
-4. scripts -- Pyspark and Python scripts that run the analysis portion of the assignment
-5. modeling -- Jupyter notebooks used to analyze the data following the pre-processing steps run via the scripts 
-provided
-6. bonus.txt -- A file explaining the rationale and underlying ideas behind some of the modeling approaches used
+3. `plots` -- Relevant figures and plots used to tackle the modeling part of the assignment
+4. `scripts` -- Pyspark and Python scripts that run the analysis portion of the assignment
+5. `modeling` -- Jupyter notebooks used to analyze the data following the pre-processing steps run via the scripts in `scripts`
+6. `modeling_bonus.txt` -- A file explaining the rationale and underlying ideas behind some of the modeling approaches used
 
 #### Notes
 
@@ -50,7 +49,7 @@ Time elapsed for the Pandas process using parallel map and reduce with 2 paralle
 
 `scripts/pyspark/spark_analysis.py`
 
-Assuming that the `$SPARK_HOME` environment variable points to your local Spark installation folder, then the ETL job can 
+Assuming that the `$SPARK_HOME` environment variable points to your local Spark installation folder, then the pyspark job can 
 be run from the project's root directory using the following command from the terminal:
 
 ```bash
@@ -58,6 +57,14 @@ $SPARK_HOME/bin/spark-submit \
 --master local[*] \
 /home/<user-name>/ws-data-spark/scripts/pyspark/spark_analysis.py
 ```
+
+`modeling` folder
+
+An attempt at answering the modeling questions can be found within the notebooks inside the modeling folder. As seen earlier 
+in the analysis portion of the work sample, speeding up the process by using a map and reduce process or even PySpark is 
+entirely possible for larger datasets. However, owing to the exploratory and investigative nature of the work in the 
+modeling portion of the work sample, I will be using the notebooks within this folder as the basis of the discussion in 
+`modeling_bonus.txt`.
 
 ## Contributor
 Hari A Ravindran, Sr. Data Scientist, Canadian Tire
