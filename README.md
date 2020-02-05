@@ -67,5 +67,5 @@ modeling portion of the work sample, I will be using the notebooks within this f
 `modeling_bonus.txt`.
 
 ## Contributor
-Hari A Ravindran, Sr. Data Scientist, Canadian Tire
+Hari A R
  
