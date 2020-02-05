@@ -23,7 +23,8 @@ output files will be saved in this folder
 3. `plots` -- Relevant figures and plots used to tackle the modeling part of the assignment
 4. `scripts` -- Pyspark and Python scripts that run the analysis portion of the assignment
 5. `modeling` -- Jupyter notebooks used to analyze the data following the pre-processing steps run via the scripts in `scripts`
-6. `modeling_bonus.txt` -- A file explaining the rationale and underlying ideas behind some of the modeling approaches used
+6. `modeling_analysis_and_bonus` -- Files in both .md and .txt formats explaining the rationale and underlying ideas behind 
+some of the modeling approaches used
 
 #### Notes
 
